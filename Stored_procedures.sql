@@ -92,4 +92,70 @@ go
 create proc AdminListNonGucianCourse 
 @courseID int
 as
-select st.name,c.code,tc.grade from 
+select st.first_name,c.code,tc.grade from Course c 
+inner join NonGucianStudentTakeCourse tc on c.id=tc.cid inner join
+NonGucianStudent st on tc.sid=st.id
+where c.id=@courseID
+go
+--drop proc AdminListNonGucianCourse
+--3.g_Update the number of thesis extension by 1
+create proc AdminUpdateExtension
+@ThesisSerialNo int
+as
+declare @old_no_Extension int
+set @old_no_Extension=(select t.noExtension from Thesis t where t.serialNumber=@ThesisSerialNo)
+update Thesis set noExtension=@old_no_Extension+1
+go
+--drop proc AdminUpdateExtension
+--3.h_Issue a thesis payment
+create proc AdminIssueThesisPayment
+@ThesisSerialNo int, 
+@amount decimal, 
+@noOfInstallments int, 
+@fundPercentage decimal
+as
+declare @p_index int
+declare @noIns int set @noIns=@noOfInstallments
+declare @date date set @date =CAST(GETDATE()AS Date)
+insert into Payment values (@amount,@noOfInstallments,@fundPercentage)
+set @p_index=SCOPE_IDENTITY();
+while @noIns !=0 begin
+if @noIns=@noOfInstallments
+    insert into Installment values (@date,@p_index,@amount/@noOfInstallments,0)
+else begin
+    set @date=DATEADD(month,6,@date)
+    insert into Installment values (@date,@p_index,@amount/@noOfInstallments,0)
+    end
+set @noIns-=1
+end
+if exists(select * from Thesis where serialNumber=@ThesisSerialNo)
+Begin
+update Thesis set payment_id=@p_index where serialNumber=@ThesisSerialNo
+print 1
+end
+else print 0
+go
+--drop proc AdminIssueThesisPayment
+--3.i_view the profile of any student that contains all his/her information
+create proc AdminViewStudentProfile
+@sid int
+as
+if exists(select * from GucianStudent where id=@sid)
+select s.id,s.first_name,s.last_name,s.faculty,s.address,p.email,p.password,
+s.GPA,s.undergradID from GucianStudent s inner join PostGradUser p on s.id=p.id
+where p.id =@sid
+else
+select s.id,s.first_name,s.last_name,s.faculty,s.address,p.email,p.password,
+s.GPA from NonGucianStudent s inner join PostGradUser p on s.id=p.id
+go
+--drop proc AdminViewStudentProfile
+--3.k_List the title(s) of accepted publication(s) per thesis
+CREATE PROC AdminListAcceptPublication as
+SELECT T.title as 'Thesis Title', P.title as 'Accepted Publication(s)'
+FROM ThesisHasPublication as TP
+INNER JOIN Publication as P
+ON P.id= TP.pub_id
+INNER JOIN Thesis as T
+ON T.serialNumber = TP.serialNo
+where accepted=1
+GO

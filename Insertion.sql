@@ -220,7 +220,25 @@ insert into ExaminerEvaluateDefense (date,serialNo,examinerId)values('9/22/2012'
 insert into ExaminerEvaluateDefense (date,serialNo,examinerId)values('9/22/2012',10,16);
 select * from ExaminerEvaluateDefense;
 -------------------------------------------------------------------------------------
-
+--Publication insertion
+Set IDENTITY_INSERT Publication ON
+INSERT INTO Publication (id, title, date, place, accepted, host)
+values(1, 'Adoption of Data Mining', '2018-5-8','Hilton Hotel', 1,'Cairo International Confrence')
+INSERT INTO Publication (id, title, date, place, accepted, host)
+values(2, 'Biology and Space', '2016-8-8','Radison Blue Hotel', 0,'Berlin International Confrence')
+INSERT INTO Publication (id, title, date, place, accepted, host)
+values(3, 'Modern Courts', '2017-6-12','Ritz Hotel', 1,'Riyadh International Confrence')
+INSERT INTO Publication (id, title, date, place, accepted, host)
+values(4, 'The Path to Equilibrium', '2020-2-4','Hayatt Hotel', 0,'Dubai International Confrence')
+INSERT INTO Publication (id, title, date, place, accepted, host)
+values(5, 'Portfolio Management','2017-2-12', 'Hilton Hotel', 1,'Cairo International Confrence')
+Set IDENTITY_INSERT Publication OFF
+--ThesisHasPublication insertion
+INSERT INTO ThesisHasPublication (serialNo, pub_id)values(6,1)
+INSERT INTO ThesisHasPublication (serialNo, pub_id)values(7,2)
+INSERT INTO ThesisHasPublication (serialNo, pub_id)values(4,3)
+INSERT INTO ThesisHasPublication (serialNo, pub_id)values(5,4)
+INSERT INTO ThesisHasPublication (serialNo, pub_id)values(3,5)
 
 
 

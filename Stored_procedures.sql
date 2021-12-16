@@ -77,18 +77,19 @@ go
 --3.e_List all supervisors’ names currently supervising students, theses title, student name
 create proc AdminViewStudentThesisBySupervisor
 as
-select GucianT.title,GucianT.first_name,GucianT.last_name
-from
-(
-    select t.title,st.first_name,st.last_name from GUCianStudentRegisterThesis gt 
-    inner join Thesis t on gt.serial_no=t.serialNumber inner join GucianStudent st on
-    gt.sid=st.id
-) as GucianT 
+select s.name as 'Supervisor Name',t.title as 'Thesis Title',st.first_name as 
+'Student_First_Name',st.last_name as 'Student_Last_Name' from GUCianProgressReport gt 
+inner join Thesis t on gt.thesisSerialNumber=t.serialNumber inner join GucianStudent st on
+gt.sid=st.id inner join Supervisor s on s.id=gt.Sup_id
+Union 
+select s.name as 'Supervisor Name',t.title as 'Thesis Title',st.first_name as 
+'Student_First_Name',st.last_name as 'Student_Last_Name' from NonGUCianProgressReport gt 
+inner join Thesis t on gt.thesisSerialNumber=t.serialNumber inner join NonGucianStudent st on
+gt.sid=st.id inner join Supervisor s on s.id=gt.Sup_id
 go
---select sup.name,t.title,st.first_name,st.last_name from Supervisor sup inner join
---GUCianStudentRegisterThesis gt on sup.id=gt.Sup_id inner join Thesis t on 
---gt.serial_no =t.serialNumber inner join GucianStudent st on gt.sid=st.id
---inner join NonGUCianStudentRegisterThesis n_gt on sup.id=n_gt.Sup_id inner join 
---Thesis t1 on n_gt.serial_no =t1.serialNumber inner join NonGucianStudent n_st on 
---n_gt.sid=st.id
 --drop proc AdminViewStudentThesisBySupervisor
+--3.f_List nonGucians names, course code, and respective grade.
+create proc AdminListNonGucianCourse 
+@courseID int
+as
+select st.name,c.code,tc.grade from 

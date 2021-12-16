@@ -21,3 +21,5 @@ exec AdminViewAllTheses;
 exec AdminViewOnGoingTheses;
 --3.e_List all supervisors’ names currently supervising students, theses title, student name
 exec AdminViewStudentThesisBySupervisor
+--3.f_List nonGucians names, course code, and respective grade.
+

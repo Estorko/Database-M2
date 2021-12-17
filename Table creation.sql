@@ -84,7 +84,7 @@ title varchar(50),
 startDate date not null,
 endDate date default null,
 defenseDate datetime default null,
-years as (Year(startDate)-Year(endDate)),
+years as (ABS(Year(startDate)-Year(endDate))),
 grade decimal(3,2),
 payment_id int default null,
 foreign key (payment_id) references Payment on delete cascade on update cascade,
@@ -103,8 +103,8 @@ host varchar(50)
 
 create table Examiner
 (
-id int primary key,
-foreign key (id) references PostGradUser on delete cascade on update cascade,
+id int primary key identity ,
+foreign key (id) references PostGradUser,
 name varchar (20),
 fieldOfWork varchar (20),
 isNational bit
@@ -212,7 +212,7 @@ serialNo int,
 examinerId int,
 comment varchar(300) default Null,
 primary key (date,serialNo,examinerId),
-foreign key (serialNo,date) references Defense,
+foreign key (serialNo,date) references Defense on delete cascade on update cascade,
 foreign key (examinerId) references Examiner
 );
 

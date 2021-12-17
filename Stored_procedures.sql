@@ -148,6 +148,9 @@ else
 select s.id,s.first_name,s.last_name,s.faculty,s.address,p.email,p.password,
 s.GPA from NonGucianStudent s inner join PostGradUser p on s.id=p.id
 go
+--3.j_Issue installments as per the number of installments for a certain payment every six months starting from the entered date
+
+
 --drop proc AdminViewStudentProfile
 --3.k_List the title(s) of accepted publication(s) per thesis
 CREATE PROC AdminListAcceptPublication as
@@ -159,3 +162,239 @@ INNER JOIN Thesis as T
 ON T.serialNumber = TP.serialNo
 where accepted=1
 GO
+--3.l_Add courses and link courses to students
+create proc AddCourse
+@courseCode varchar(10), 
+@creditHrs int, 
+@fees decimal
+as
+insert into Course values(@fees,@creditHrs,@courseCode)
+go
+--linkCourseStudent
+create proc linkCourseStudent
+@courseID int, 
+@studentID int
+as
+if exists(select * from NonGucianStudent where id=@studentID)
+insert into NonGucianStudentTakeCourse (sid,cid) values (@studentID,@courseID)
+else print 'Invalid Student ID'
+go
+--addStudentCourseGrade
+create proc addStudentCourseGrade
+@courseID int, 
+@studentID int, 
+@grade decimal
+as
+update NonGucianStudentTakeCourse set grade=@grade where 
+cid=@courseID and sid=@studentID
+go
+--3.m_View examiners and supervisor(s) names attending a thesis defense taking place on a certain date
+create proc ViewExamSupDefense
+@defenseDate datetime
+as
+declare @serial_num int
+set @serial_num= (select t.serialNumber from Thesis t where defenseDate=@defenseDate)
+if exists(select * from GUCianStudentRegisterThesis where serial_no=@serial_num) begin
+select ex.name as'Examiner Name',s.name as 'Supervisor Name' from Thesis t inner join 
+ExaminerEvaluateDefense e on t.serialNumber=e.serialNo inner join Examiner ex on 
+e.examinerId=ex.id inner join GUCianStudentRegisterThesis gt on t.serialNumber=gt.serial_no 
+inner join Supervisor s on gt.Sup_id=s.id where defenseDate=@defenseDate 
+end
+else begin
+select ex.name as'Examiner Name',s.name as 'Supervisor Name' from Thesis t inner join 
+ExaminerEvaluateDefense e on t.serialNumber=e.serialNo inner join Examiner ex on e.examinerId=ex.id 
+inner join NonGUCianStudentRegisterThesis gt on t.serialNumber=gt.serial_no inner join Supervisor s 
+on gt.Sup_id=s.id where defenseDate=@defenseDate
+end
+go
+--drop proc ViewExamSupDefense
+--4.a_Evaluate a student’s progress report, and give evaluation value 0 to 3
+create proc EvaluateProgressReport
+@supervisorID int, 
+@thesisSerialNo int, 
+@progressReportNo int, 
+@evaluation int
+as
+if @evaluation >3 or @evaluation<0
+print 'Wrong evaluation: Must be a value from from 0-3'
+else 
+begin
+if exists(select * from  GUCianProgressReport where thesisSerialNumber=@thesisSerialNo and
+Sup_id=@supervisorID and progressReportNo=@progressReportNo) update GUCianProgressReport
+set eval=@evaluation where thesisSerialNumber=@thesisSerialNo and Sup_id=@supervisorID and 
+progressReportNo=@progressReportNo
+else update NonGUCianProgressReport set eval=@evaluation where thesisSerialNumber=@thesisSerialNo and 
+Sup_id=@supervisorID and progressReportNo=@progressReportNo
+end
+go
+--4.b_View all my students’s names and years spent in the thesis
+create proc ViewSupStudentsYears
+@supervisorID int
+as
+select s.first_name as 'First Name',t.years as 'Years in Thesis' from GUCianStudentRegisterThesis gt inner join Supervisor sup on
+gt.Sup_id=sup.id inner join GucianStudent s on gt.sid=s.id inner join Thesis t on 
+gt.serial_no=t.serialNumber where gt.Sup_id=@supervisorID
+Union
+select s.first_name as 'First Name',t.years as 'Years in Thesis' from NonGUCianStudentRegisterThesis gt inner join Supervisor sup on
+gt.Sup_id=sup.id inner join NonGucianStudent s on gt.sid=s.id inner join Thesis t on 
+gt.serial_no=t.serialNumber where gt.Sup_id=@supervisorID
+go
+--drop proc ViewSupStudentsYears
+--4.c_View my profile and update my personal information
+create proc SupViewProfile
+@supervisorID int
+as
+if exists(select * from Supervisor where id=@supervisorID)
+select * from Supervisor where id=@supervisorID
+else print 'Profile doesn''t exist'
+go
+--drop proc SupViewProfile
+--4.d_View all publications of a student
+create proc ViewAStudentPublications
+@StudentID int
+as
+if exists(select * from GucianStudent where id=@StudentID)
+select p.id,p.title,p.date,p.place,p.accepted,p.host from Publication p inner join ThesisHasPublication tp on p.id=tp.pub_id inner join
+Thesis t on tp.serialNo=t.serialNumber inner join GUCianStudentRegisterThesis st on 
+st.serial_no=t.serialNumber inner join GucianStudent s on s.id=st.sid where s.id=@StudentID
+else
+select p.id,p.title,p.date,p.place,p.accepted,p.host from Publication p inner join ThesisHasPublication tp on p.id=tp.pub_id inner join
+Thesis t on tp.serialNo=t.serialNumber inner join NonGUCianStudentRegisterThesis st on 
+st.serial_no=t.serialNumber inner join NonGucianStudent s on s.id=st.sid where s.id=@StudentID
+go
+--drop proc ViewAStudentPublications
+--4.e_Add defense for a thesis, for nonGucian students all courses’ grades should be greater than 50 percent
+create proc AddDefenseGucian
+@ThesisSerialNo int ,
+@DefenseDate Datetime , 
+@DefenseLocation varchar(15)
+as
+go
+--
+create proc AddDefenseNonGucian
+@ThesisSerialNo int ,
+@DefenseDate Datetime , 
+@DefenseLocation varchar(15)
+as
+go
+--
+--4.f_Add examiner(s) for a defense
+create proc AddExaminer
+@ThesisSerialNo int , 
+@DefenseDate Datetime , 
+@ExaminerName varchar(20), 
+@National bit, 
+@fieldOfWork varchar(20)
+as
+declare @ex_id int
+set @ex_id= (select e.id from Examiner e where e.name=@ExaminerName and isNational=@National and
+fieldOfWork=@fieldOfWork)
+insert into ExaminerEvaluateDefense (date,serialNo,examinerId)values 
+(@DefenseDate,@ThesisSerialNo,@ex_id)
+go
+--drop proc AddExaminer
+--4.g_Cancel a Thesis if the evaluation of the last progress report is zero
+--create proc CancelThesis
+--@ThesisSerialNo int
+--as
+--if exists(select * from NonGUCianProgressReport where thesisSerialNumber=@ThesisSerialNo)
+--begin
+--select eval from
+--(select max(progressReportDate),pr.eval as eval from NonGUCianProgressReport pr where 
+--thesisSerialNumber=@ThesisSerialNo)
+--end
+--else
+--select max(progressReportDate) as MaxDate from GUCianProgressReport where 
+--thesisSerialNumber=@ThesisSerialNo
+--go
+--4.h_Add a grade for a thesis
+create proc AddGrade
+@ThesisSerialNo int,
+@Grade decimal (3,2)
+as
+update Thesis set grade=@Grade where serialNumber=@ThesisSerialNo
+go
+--5.a_Add grade for a defense
+create proc AddDefenseGrade
+@ThesisSerialNo int , 
+@DefenseDate Datetime , 
+@grade decimal(3,2)
+as
+update Defense set grade=@grade where serialNumber=@ThesisSerialNo and date=@DefenseDate
+go
+--5.b_Add comments for a defense
+create proc AddCommentsGrade
+@ThesisSerialNo int , 
+@DefenseDate Datetime , 
+@comments varchar(300)
+as
+update ExaminerEvaluateDefense set comment=@comments where serialNo=@ThesisSerialNo
+and date=@DefenseDate
+go
+--6.a_View my profile that contains all my information
+create proc viewMyProfile
+@studentId int
+as
+if exists(select * from GucianStudent where id=@studentId)
+select * from GucianStudent where id=@studentId
+else select * from NonGucianStudent where id=@studentId
+go
+--6.b_Edit my profile (change any of my personal information)
+create proc editMyProfile
+@studentID int, 
+@firstName varchar(10)=null, 
+@lastName varchar(10)=null, 
+@password varchar(10)=null, 
+@email varchar(10)=null, 
+@address varchar(10)=null, 
+@type varchar(10)=null
+as
+if exists(select * from GucianStudent where id=@studentId)
+begin
+if(@firstName is not null) update GucianStudent set first_name=@firstName
+where id=@studentID
+if (@lastName is not null) update GucianStudent set last_name=@lastName
+where id=@studentID
+if (@password is not null) update PostGradUser set password=@password
+where id=@studentID
+if (@email is not null) update PostGradUser set email=@email
+where id=@studentID
+if (@address is not null) update GucianStudent set address=@address
+where id=@studentID
+if (@type is not null) update GucianStudent set type=@type where
+id=@studentID
+end
+else
+begin
+if(@firstName is not null) update NonGucianStudent set first_name=@firstName
+where id=@studentID
+if (@lastName is not null) update NonGucianStudent set last_name=@lastName
+where id=@studentID
+if (@password is not null) update PostGradUser set password=@password
+where id=@studentID
+if (@email is not null) update PostGradUser set email=@email
+where id=@studentID
+if (@address is not null) update NonGucianStudent set address=@address
+where id=@studentID
+if (@type is not null) update NonGucianStudent set type=@type where
+id=@studentID
+end
+go
+--drop proc editMyProfile
+--6.c_As a Gucian graduate, add my undergarduate ID
+create proc addUndergradID 
+@studentID int, 
+@undergradID varchar(10)
+as
+if exists(select * from GucianStudent where id=@studentID)
+update GucianStudent set undergradID=@undergradID where id=@studentID
+else print 'Invalid ID'
+go
+--6.d_As a nonGucian student, view my courses’ grades
+create proc ViewCoursesGrades
+@studentID int
+as
+select c.code as'Course Code',nt.grade as 'Grade',c.creditHours 'Credit Hours' from Course c inner join 
+NonGucianStudentTakeCourse nt on c.id=nt.cid where nt.sid=@studentID
+go
+--drop proc ViewCoursesGrades

@@ -31,3 +31,42 @@ exec AdminIssueThesisPayment 1,2800,3,1.2
 exec AdminViewStudentProfile 1
 --3.k_List the title(s) of accepted publication(s) per thesis
 exec AdminListAcceptPublication
+--3.l_Add courses and link courses to students
+exec AddCourse 'CSEN-421',6,5000
+exec linkCourseStudent 3,8
+exec addStudentCourseGrade 3,8,1.8
+--3.m_View examiners and supervisor(s) names attending a thesis defense taking place on a certain date
+exec ViewExamSupDefense '2/9/2016'
+--4.a_Evaluate a student’s progress report, and give evaluation value 0 to 3
+exec EvaluateProgressReport 14,9,4,3
+--4.b_View all my students’s names and years spent in the thesis
+exec ViewSupStudentsYears 14
+--4.c_View my profile and update my personal information
+exec SupViewProfile 13
+--4.d_View all publications of a student
+exec ViewAStudentPublications 4
+--4.e_Add defense for a thesis, for nonGucian students all courses’ grades should be greater than 50 percent
+exec AddDefenseGucian
+exec AddDefenseNonGucian
+--4.f_Add examiner(s) for a defense
+exec AddExaminer 2,'2/9/2016','Mervat',1,'Proffessor'
+--4.g_Cancel a Thesis if the evaluation of the last progress report is zero
+exec CancelThesis 1
+select * from Thesis
+--select * from GUCianProgressReport
+--4.h_Add a grade for a thesis
+exec AddGrade 1,2.1
+--5.a_Add grade for a defense
+exec AddDefenseGrade 2,'2016-02-09',1.8
+--5.b_Add comments for a defense
+exec AddCommentsGrade 10,'2012-09-22','The student did a good job'
+select * from ExaminerEvaluateDefense
+--6.a_View my profile that contains all my information
+exec viewMyProfile 1
+--6.b_Edit my profile (change any of my personal information)
+exec editMyProfile 2,'Ashraf_Edited',@password='test';
+--6.c_As a Gucian graduate, add my undergarduate ID
+exec addUndergradID 2,'14444'
+--6.d_As a nonGucian student, view my courses’ grades
+exec ViewCoursesGrades 10
+

@@ -50,12 +50,12 @@ as
 if(exists(select * from GucianStudent where id=@ID)) insert into GUCStudentPhoneNumber values (@ID,@mobile_number)
 else insert into NonGUCStudentPhoneNumber values (@ID,@mobile_number)
 go
---3.a List all supervisors in the system
+--3.a_List all supervisors in the system
 create proc AdminListSup 
 as
 select * from Supervisor
 go
---3.b view the profile of any supervisor that contains all his/her information
+--3.b_view the profile of any supervisor that contains all his/her information
 create proc AdminViewSupervisorProfile
 @supId int
 as
@@ -149,8 +149,26 @@ select s.id,s.first_name,s.last_name,s.faculty,s.address,p.email,p.password,
 s.GPA from NonGucianStudent s inner join PostGradUser p on s.id=p.id
 go
 --3.j_Issue installments as per the number of installments for a certain payment every six months starting from the entered date
-
-
+create proc AdminIssueInstallPayment
+@paymentID int, 
+@InstallStartDate date
+as
+declare @installments int
+declare @temp int 
+declare @amount int
+set @installments=(SELECT no_installments FROM Payment P INNER JOIN Installment I
+ON P.id=I.payment_id where payment_id=@paymentID)
+set @temp = @installments
+set @amount=(SELECT P.amount FROM Payment P
+INNER JOIN Installment I ON P.id=I.payment_id where payment_id=@paymentID)
+while @temp != 0
+begin
+     insert into Installment values (@InstallStartDate,@paymentID,@amount/@installments,0)
+     set @InstallStartDate=DATEADD(month,6,@InstallStartDate)
+     set @temp-=1
+end
+go
+--drop proc AdminIssueInstallPayment
 --drop proc AdminViewStudentProfile
 --3.k_List the title(s) of accepted publication(s) per thesis
 CREATE PROC AdminListAcceptPublication as
@@ -264,14 +282,14 @@ st.serial_no=t.serialNumber inner join NonGucianStudent s on s.id=st.sid where s
 go
 --drop proc ViewAStudentPublications
 --4.e_Add defense for a thesis, for nonGucian students all courses’ grades should be greater than 50 percent
-create proc AddDefenseGucian
+create proc AddDefenseGucian --(not done)
 @ThesisSerialNo int ,
 @DefenseDate Datetime , 
 @DefenseLocation varchar(15)
 as
 go
---
-create proc AddDefenseNonGucian
+--AddDefenseNonGucian 
+create proc AddDefenseNonGucian --(not done)
 @ThesisSerialNo int ,
 @DefenseDate Datetime , 
 @DefenseLocation varchar(15)
@@ -292,7 +310,7 @@ fieldOfWork=@fieldOfWork)
 insert into ExaminerEvaluateDefense (date,serialNo,examinerId)values 
 (@DefenseDate,@ThesisSerialNo,@ex_id)
 go
---drop proc AddExaminer
+--drop proc AddExaminer --(not done)
 --4.g_Cancel a Thesis if the evaluation of the last progress report is zero
 --create proc CancelThesis
 --@ThesisSerialNo int
@@ -398,3 +416,85 @@ select c.code as'Course Code',nt.grade as 'Grade',c.creditHours 'Credit Hours' f
 NonGucianStudentTakeCourse nt on c.id=nt.cid where nt.sid=@studentID
 go
 --drop proc ViewCoursesGrades
+--6.e_View all my payments and installments
+create proc ViewCoursePaymentsInstall
+@studentID int
+as
+select c.code as'Course Code',p.amount,p.no_installments from NonGucianStudentPayForCourse 
+nc inner join Course c on nc.cid=c.id inner join Payment p on nc.paymentNo=p.id
+where nc.sid=@studentID
+go
+--ViewThesisPaymentsInstall
+create proc ViewThesisPaymentsInstall
+@studentID int
+as
+if exists (select * from GucianStudent where id=@studentID)
+select t.title as'Thesis Title',p.amount,p.no_installments from Thesis t inner join Payment p on t.payment_id=p.id 
+inner join GUCianStudentRegisterThesis s on s.serial_no=t.serialNumber where s.sid=@studentID
+else
+select t.title as 'Thesis Title',p.amount,p.no_installments from Thesis t inner join Payment p on t.payment_id=p.id 
+inner join NonGUCianStudentRegisterThesis s on s.serial_no=t.serialNumber where s.sid=@studentID
+go
+--ViewUpcomingInstallments
+create proc ViewUpcomingInstallments
+@studentID int
+as
+if exists (select * from GucianStudent where id=@studentID)
+select i.amount,i.date from Installment i inner join Payment p on i.payment_id=p.id
+inner join Thesis t on t.payment_id=p.id inner join GUCianStudentRegisterThesis gt on
+gt.serial_no=t.serialNumber where gt.sid=@studentID and i.done=0 
+else
+select i.amount,i.date from Installment i inner join Payment p on i.payment_id=p.id
+inner join Thesis t on t.payment_id=p.id inner join NonGUCianStudentRegisterThesis gt on
+gt.serial_no=t.serialNumber inner join NonGucianStudentPayForCourse n_pc on n_pc.paymentNo=p.id  
+where gt.sid=@studentID and i.done=0
+go
+--drop proc ViewUpcomingInstallments
+--ViewMissedInstallments
+create proc ViewMissedInstallments
+@studentID int
+as
+if exists (select * from GucianStudent where id=@studentID)
+select i.amount,i.date from Installment i inner join Payment p on i.payment_id=p.id
+inner join Thesis t on t.payment_id=p.id inner join GUCianStudentRegisterThesis gt on
+gt.serial_no=t.serialNumber where gt.sid=@studentID and i.done=0 and i.date < CONVERT(DATE, GETDATE())
+else
+select i.amount,i.date from Installment i inner join Payment p on i.payment_id=p.id
+inner join Thesis t on t.payment_id=p.id inner join NonGUCianStudentRegisterThesis gt on
+gt.serial_no=t.serialNumber inner join NonGucianStudentPayForCourse n_pc on n_pc.paymentNo=p.id  
+where gt.sid=@studentID and i.done=0 and i.date < CONVERT(DATE, GETDATE());
+go
+--drop proc ViewMissedInstallments
+--6.f_Add and fill my progress report(s)
+create proc AddProgressReport
+@thesisSerialNo int, 
+@progressReportDate date
+as
+declare @studentID int
+if exists (select * from GUCianStudentRegisterThesis where serial_no=@thesisSerialNo) 
+begin set @studentID=(select s.id from Thesis t inner join GUCianStudentRegisterThesis gt on t.serialNumber=gt.serial_no inner join
+GucianStudent s on gt.sid=s.id where t.serialNumber=@thesisSerialNo)
+insert into GUCianProgressReport (sid,thesisSerialNumber,progressReportDate) values 
+(@studentID,@thesisSerialNo,@progressReportDate)
+end
+else
+begin set @studentID=(select s.id from Thesis t inner join NonGUCianStudentRegisterThesis gt on t.serialNumber=gt.serial_no inner join
+NonGucianStudent s on gt.sid=s.id where t.serialNumber=@thesisSerialNo)
+insert into NonGUCianProgressReport (sid,thesisSerialNumber,progressReportDate) values (@studentID,@thesisSerialNo,@progressReportDate)
+end
+go
+--drop proc AddProgressReport
+--FillProgressReport
+create proc FillProgressReport
+@thesisSerialNo int, 
+@progressReportNo int, 
+@state int, 
+@description varchar(200)
+as
+declare @studentID int
+if exists (select * from GUCianStudentRegisterThesis where serial_no=@thesisSerialNo) 
+update GUCianProgressReport set state=@state,description=@description where progressReportNo=@progressReportNo
+else
+update NonGUCianProgressReport set state=@state,description=@description where progressReportNo=@progressReportNo
+go
+

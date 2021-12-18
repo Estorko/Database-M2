@@ -29,6 +29,10 @@ exec AdminUpdateExtension 3
 exec AdminIssueThesisPayment 1,2800,3,1.2
 --3.i_view the profile of any student that contains all his/her information
 exec AdminViewStudentProfile 1
+--3.j_Issue installments as per the number of installments for a certain payment every six months starting from the entered date
+exec AdminIssueInstallPayment 16,'1/1/2018'
+select * from Installment 
+select * from Payment
 --3.k_List the title(s) of accepted publication(s) per thesis
 exec AdminListAcceptPublication
 --3.l_Add courses and link courses to students
@@ -69,4 +73,12 @@ exec editMyProfile 2,'Ashraf_Edited',@password='test';
 exec addUndergradID 2,'14444'
 --6.d_As a nonGucian student, view my courses’ grades
 exec ViewCoursesGrades 10
-
+--6.e_View all my payments and installments
+exec ViewCoursePaymentsInstall 10
+exec ViewThesisPaymentsInstall 2
+exec ViewUpcomingInstallments 5
+exec ViewMissedInstallments 3
+--6.f_Add and fill my progress report(s)
+exec AddProgressReport 10,'12/11/2020'
+exec FillProgressReport 10,8,2,'TEST'
+select * from NonGUCianProgressReport

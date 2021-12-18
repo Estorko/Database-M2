@@ -93,16 +93,17 @@ insert into Payment values (300,2,0.2);
 insert into Payment values (300,1,0.1);
 insert into Payment values (600,3,0.4);
 insert into Payment values (1100,4,0.3);
+insert into Payment values (3000,4,0.2);
 --installments
 --P_1
-insert into Installment values ('8/11/2019',1,166.66,1);
-insert into Installment values ('2020-02-11',1,166.66,1);
-insert into Installment values ('2020-08-11',1,166.66,1);
+insert into Installment values ('8/11/2019',1,166.66,0);
+insert into Installment values ('2020-02-11',1,166.66,0);
+insert into Installment values ('2020-08-11',1,166.66,0);
 --P_2
-insert into Installment values ('8/6/2020',2,200,1);
-insert into Installment values ('2021-02-06',2,200,1);
-insert into Installment values ('2021-08-06',2,200,1);
-insert into Installment values ('2022-02-06',2,200,1);
+insert into Installment values ('8/6/2020',2,200,0);
+insert into Installment values ('2021-02-06',2,200,0);
+insert into Installment values ('2021-08-06',2,200,0);
+insert into Installment values ('2022-02-06',2,200,0);
 --P_3
 insert into Installment values ('4/12/2021',3,200,1);
 insert into Installment values ('2021-10-12',3,200,1);
@@ -130,7 +131,7 @@ insert into Payment values (2000,0,0.2);
 insert into Payment values (5000,0,0.4);
 insert into Payment values (2000,0,0.2);
 insert into Payment values (2500,0,0.5);
-insert into Payment values (5000,0,0.4);
+insert into Payment values (5000,2,0.4);
 insert into Payment values (2000,0,0.2);
 --(delete) DBCC CHECKIDENT ('Payment',Reseed,0); (to reset identity counter);
 --display payment & installments

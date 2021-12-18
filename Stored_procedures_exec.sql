@@ -1,16 +1,11 @@
 ﻿--1.a_Register to the website by using my name (First and last name), password, faculty, email, and address
-exec StudentRegister 'x','y','test','BI',1,'test@gmail.com','r';
-select* from PostGradUser;
-select * from GucianStudent;
+exec StudentRegister 'Baher','Rafael','BaherR^_3','Business Informatics',1,'Baher@gmail.com','Tagamo3';
 --1.b_SupervisorRegister
 exec SupervisorRegister 'Ahmad','Hany','7Rp[RV','Business informatics','Ahmad.Hany@gmail.com';
-select * from PostGradUser;
-select * from Supervisor;
 --2.a_login using my username and password
 exec userLogin 1,'u8nN}B';
 --2.b_add my mobile number(s)
 exec addMobile 1,'+20 224 899 1352';
-select * from GUCStudentPhoneNumber;
 --3.a_List all supervisors in the system
 exec AdminListSup;
 --3.b_view the profile of any supervisor that contains all his/her information
@@ -45,23 +40,23 @@ exec EvaluateProgressReport 14,9,4,3
 exec ViewSupStudentsYears 14
 --4.c_View my profile and update my personal information
 exec SupViewProfile 13
+exec UpdateSupProfile 13,'Yara','Applied Arts'
 --4.d_View all publications of a student
 exec ViewAStudentPublications 4
 --4.e_Add defense for a thesis, for nonGucian students all courses’ grades should be greater than 50 percent
-exec AddDefenseGucian
-exec AddDefenseNonGucian
+exec AddDefenseGucian 1,'12/24/2020','N5'
+exec AddDefenseNonGucian 10,'12/24/2020','N5'
+exec AddDefenseNonGucian 9,'12/24/2020','N5'
 --4.f_Add examiner(s) for a defense
 exec AddExaminer 2,'2/9/2016','Mervat',1,'Proffessor'
 --4.g_Cancel a Thesis if the evaluation of the last progress report is zero
 exec CancelThesis 1
---select * from GUCianProgressReport
 --4.h_Add a grade for a thesis
 exec AddGrade 1,2.1
 --5.a_Add grade for a defense
 exec AddDefenseGrade 2,'2016-02-09',1.8
 --5.b_Add comments for a defense
 exec AddCommentsGrade 10,'2012-09-22','The student did a good job'
-select * from ExaminerEvaluateDefense
 --6.a_View my profile that contains all my information
 exec viewMyProfile 1
 --6.b_Edit my profile (change any of my personal information)

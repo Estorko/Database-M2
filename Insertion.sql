@@ -132,7 +132,7 @@ insert into Payment values (5000,0,0.4);
 insert into Payment values (2000,0,0.2);
 insert into Payment values (2500,0,0.5);
 insert into Payment values (5000,2,0.4);
-insert into Payment values (2000,0,0.2);
+insert into Payment values (6000,4,0.2);
 --(delete) DBCC CHECKIDENT ('Payment',Reseed,0); (to reset identity counter);
 --display payment & installments
 select * from Payment;
@@ -207,8 +207,9 @@ insert into NonGucianStudentTakeCourse (sid,cid)values (7,1);
 insert into NonGucianStudentTakeCourse values (8,2,70);
 insert into NonGucianStudentTakeCourse values (9,3,75);
 insert into NonGucianStudentTakeCourse values (9,4,45);
+insert into NonGucianStudentTakeCourse values (9,1,45);
 insert into NonGucianStudentTakeCourse values (10,1,90);
-insert into NonGucianStudentTakeCourse values (10,3,38);
+insert into NonGucianStudentTakeCourse values (10,3,51);
 insert into NonGucianStudentTakeCourse values (10,2,80);
 --display NonGucianStudentTakeCourse table
 select * from NonGucianStudentTakeCourse;

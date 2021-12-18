@@ -148,19 +148,18 @@ else
 select s.id,s.first_name,s.last_name,s.faculty,s.address,p.email,p.password,
 s.GPA from NonGucianStudent s inner join PostGradUser p on s.id=p.id
 go
+--drop proc AdminViewStudentProfile
 --3.j_Issue installments as per the number of installments for a certain payment every six months starting from the entered date
-create proc AdminIssueInstallPayment --(NOT DONE)
+create proc AdminIssueInstallPayment
 @paymentID int, 
 @InstallStartDate date
 as
 declare @installments int
 declare @temp int 
 declare @amount int
-set @installments=(SELECT no_installments FROM Payment P INNER JOIN Installment I
-ON P.id=I.payment_id where payment_id=@paymentID)
+set @installments=(SELECT P.no_installments FROM Payment P where P.id=@paymentID)
 set @temp = @installments
-set @amount=(SELECT P.amount FROM Payment P
-INNER JOIN Installment I ON P.id=I.payment_id where payment_id=@paymentID)
+set @amount=(SELECT P.amount FROM Payment P where P.id=@paymentID)
 while @temp != 0
 begin
      insert into Installment values (@InstallStartDate,@paymentID,@amount/@installments,0)
@@ -169,7 +168,6 @@ begin
 end
 go
 --drop proc AdminIssueInstallPayment
---drop proc AdminViewStudentProfile
 --3.k_List the title(s) of accepted publication(s) per thesis
 CREATE PROC AdminListAcceptPublication as
 SELECT T.title as 'Thesis Title', P.title as 'Accepted Publication(s)'
@@ -266,6 +264,14 @@ if exists(select * from Supervisor where id=@supervisorID)
 select * from Supervisor where id=@supervisorID
 else print 'Profile doesn''t exist'
 go
+--UpdateSupProfile
+create proc UpdateSupProfile
+@supervisorID int, 
+@name varchar(20), 
+@faculty varchar(20)
+as
+update Supervisor set name=@name, faculity=@faculty where id=@supervisorID
+go
 --drop proc SupViewProfile
 --4.d_View all publications of a student
 create proc ViewAStudentPublications
@@ -282,19 +288,29 @@ st.serial_no=t.serialNumber inner join NonGucianStudent s on s.id=st.sid where s
 go
 --drop proc ViewAStudentPublications
 --4.e_Add defense for a thesis, for nonGucian students all courses’ grades should be greater than 50 percent
-create proc AddDefenseGucian --(not done)
-@ThesisSerialNo int ,
-@DefenseDate Datetime , 
+create proc AddDefenseGucian
+@ThesisSerialNo int,
+@DefenseDate Datetime, 
 @DefenseLocation varchar(15)
 as
+insert into Defense (serialNumber,date,location)values (@ThesisSerialNo,@DefenseDate,@DefenseLocation)
+update Thesis set defenseDate=@DefenseDate where serialNumber=@ThesisSerialNo
 go
 --AddDefenseNonGucian 
-create proc AddDefenseNonGucian --(not done)
+create proc AddDefenseNonGucian
 @ThesisSerialNo int ,
 @DefenseDate Datetime , 
 @DefenseLocation varchar(15)
 as
+if not exists(select ngt.grade from NonGucianStudentTakeCourse ngt inner join
+NonGUCianStudentRegisterThesis t on t.sid=ngt.sid where t.serial_no=@ThesisSerialNo and ngt.grade<50)
+begin
+insert into Defense (serialNumber,date,location)values (@ThesisSerialNo,@DefenseDate,@DefenseLocation)
+update Thesis set defenseDate=@DefenseDate where serialNumber=@ThesisSerialNo
+end
+else print 'Students all courses’ grades should be greater than 50'
 go
+--drop proc AddDefenseNonGucian
 --
 --4.f_Add examiner(s) for a defense
 create proc AddExaminer
@@ -315,16 +331,21 @@ go
 create proc CancelThesis
 @ThesisSerialNo int
 as
+declare @report_date varchar(20)
 if exists(select * from NonGUCianProgressReport where thesisSerialNumber=@ThesisSerialNo)
 begin
-select eval from
-(select max(progressReportDate),pr.eval as eval from NonGUCianProgressReport pr where 
-thesisSerialNumber=@ThesisSerialNo)
+set @report_date=(select max(progressReportDate) from NonGUCianProgressReport where thesisSerialNumber=@ThesisSerialNo)
+if(select eval from NonGUCianProgressReport where thesisSerialNumber=@ThesisSerialNo and progressReportDate=@report_date)=0
+delete from Thesis where serialNumber=@ThesisSerialNo
 end
 else
-select max(progressReportDate) as MaxDate from GUCianProgressReport where 
-thesisSerialNumber=@ThesisSerialNo
+begin
+set @report_date=(select max(progressReportDate) from GUCianProgressReport where thesisSerialNumber=@ThesisSerialNo)
+if(select eval from GUCianProgressReport where thesisSerialNumber=@ThesisSerialNo and progressReportDate=@report_date)=0
+delete from Thesis where serialNumber=@ThesisSerialNo
+end
 go
+--drop proc CancelThesis
 --4.h_Add a grade for a thesis
 create proc AddGrade
 @ThesisSerialNo int,
@@ -509,7 +530,7 @@ else
 select r.progressReportNo,r.eval from NonGUCianProgressReport r where thesisSerialNumber=@thesisSerialNo and 
 progressReportNo=@progressReportNo
 go
---g.h_Add publication
+--6.h_Add publication
 create proc addPublication
 @title varchar(50), 
 @pubDate datetime, 

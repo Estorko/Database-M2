@@ -1,4 +1,4 @@
-﻿--create database T23_10849;
+﻿create database T23_10849;
 create table PostGradUser
 (
 id int Primary Key identity,

@@ -149,7 +149,7 @@ select s.id,s.first_name,s.last_name,s.faculty,s.address,p.email,p.password,
 s.GPA from NonGucianStudent s inner join PostGradUser p on s.id=p.id
 go
 --3.j_Issue installments as per the number of installments for a certain payment every six months starting from the entered date
-create proc AdminIssueInstallPayment
+create proc AdminIssueInstallPayment --(NOT DONE)
 @paymentID int, 
 @InstallStartDate date
 as
@@ -310,21 +310,21 @@ fieldOfWork=@fieldOfWork)
 insert into ExaminerEvaluateDefense (date,serialNo,examinerId)values 
 (@DefenseDate,@ThesisSerialNo,@ex_id)
 go
---drop proc AddExaminer --(not done)
+--drop proc AddExaminer 
 --4.g_Cancel a Thesis if the evaluation of the last progress report is zero
---create proc CancelThesis
---@ThesisSerialNo int
---as
---if exists(select * from NonGUCianProgressReport where thesisSerialNumber=@ThesisSerialNo)
---begin
---select eval from
---(select max(progressReportDate),pr.eval as eval from NonGUCianProgressReport pr where 
---thesisSerialNumber=@ThesisSerialNo)
---end
---else
---select max(progressReportDate) as MaxDate from GUCianProgressReport where 
---thesisSerialNumber=@ThesisSerialNo
---go
+create proc CancelThesis
+@ThesisSerialNo int
+as
+if exists(select * from NonGUCianProgressReport where thesisSerialNumber=@ThesisSerialNo)
+begin
+select eval from
+(select max(progressReportDate),pr.eval as eval from NonGUCianProgressReport pr where 
+thesisSerialNumber=@ThesisSerialNo)
+end
+else
+select max(progressReportDate) as MaxDate from GUCianProgressReport where 
+thesisSerialNumber=@ThesisSerialNo
+go
 --4.h_Add a grade for a thesis
 create proc AddGrade
 @ThesisSerialNo int,
@@ -497,4 +497,35 @@ update GUCianProgressReport set state=@state,description=@description where prog
 else
 update NonGUCianProgressReport set state=@state,description=@description where progressReportNo=@progressReportNo
 go
+--6.g_View my progress report(s) evaluations
+create proc ViewEvalProgressReport
+@thesisSerialNo int, 
+@progressReportNo int
+as
+if exists(select * from GUCianProgressReport where thesisSerialNumber=@thesisSerialNo and progressReportNo=@progressReportNo)
+select r.progressReportNo,r.eval from GUCianProgressReport r where thesisSerialNumber=@thesisSerialNo and 
+progressReportNo=@progressReportNo
+else 
+select r.progressReportNo,r.eval from NonGUCianProgressReport r where thesisSerialNumber=@thesisSerialNo and 
+progressReportNo=@progressReportNo
+go
+--g.h_Add publication
+create proc addPublication
+@title varchar(50), 
+@pubDate datetime, 
+@host varchar(50), 
+@place varchar(50), 
+@accepted bit
+as
+insert into Publication (title, date, host, place, accepted) values (@title,@pubDate,@host,@place,@accepted)
+go
+--drop proc addPublication
+--6.i_Link publication to my thesis
+create proc linkPubThesis
+@PubID int, 
+@thesisSerialNo int
+as
+insert into ThesisHasPublication values (@PubID,@thesisSerialNo)
+go
+
 

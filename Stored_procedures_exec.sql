@@ -31,8 +31,6 @@ exec AdminIssueThesisPayment 1,2800,3,1.2
 exec AdminViewStudentProfile 1
 --3.j_Issue installments as per the number of installments for a certain payment every six months starting from the entered date
 exec AdminIssueInstallPayment 16,'1/1/2018'
-select * from Installment 
-select * from Payment
 --3.k_List the title(s) of accepted publication(s) per thesis
 exec AdminListAcceptPublication
 --3.l_Add courses and link courses to students
@@ -56,7 +54,6 @@ exec AddDefenseNonGucian
 exec AddExaminer 2,'2/9/2016','Mervat',1,'Proffessor'
 --4.g_Cancel a Thesis if the evaluation of the last progress report is zero
 exec CancelThesis 1
-select * from Thesis
 --select * from GUCianProgressReport
 --4.h_Add a grade for a thesis
 exec AddGrade 1,2.1
@@ -80,5 +77,10 @@ exec ViewUpcomingInstallments 5
 exec ViewMissedInstallments 3
 --6.f_Add and fill my progress report(s)
 exec AddProgressReport 10,'12/11/2020'
-exec FillProgressReport 10,8,2,'TEST'
-select * from NonGUCianProgressReport
+exec FillProgressReport 6,1,2,'TEST'
+--6.g_View my progress report(s) evaluations
+exec ViewEvalProgressReport 1,1
+--6.h_Add publication
+exec addPublication 'Adoption of Technical analysis','2019/6/7','Hilton Hotel','Cairo International Confrence',1
+--6.i_Link publication to my thesis
+exec linkPubThesis 3,2

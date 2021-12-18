@@ -177,7 +177,7 @@ create table NonGucianStudentTakeCourse
 (
 sid int,
 cid int,
-grade decimal (3,2) default null,
+grade decimal default null,
 primary key(sid,cid),
 foreign key (sid) references NonGucianStudent on delete cascade on update cascade,
 foreign key (cid) references Course on delete cascade on update cascade

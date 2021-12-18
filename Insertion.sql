@@ -202,14 +202,14 @@ insert into Course values (2500,4,'HROB-203');
 --display course table 
 select * from Course;
 --NonGucianStudentTakeCourse insertion
-insert into NonGucianStudentTakeCourse values (6,1,1.3);
+insert into NonGucianStudentTakeCourse values (6,1,75);
 insert into NonGucianStudentTakeCourse (sid,cid)values (7,1);
-insert into NonGucianStudentTakeCourse values (8,2,2.1);
-insert into NonGucianStudentTakeCourse values (9,3,1.6);
-insert into NonGucianStudentTakeCourse values (9,4,1.8);
-insert into NonGucianStudentTakeCourse values (10,1,3.1);
-insert into NonGucianStudentTakeCourse values (10,3,2.8);
-insert into NonGucianStudentTakeCourse values (10,2,2.1);
+insert into NonGucianStudentTakeCourse values (8,2,70);
+insert into NonGucianStudentTakeCourse values (9,3,75);
+insert into NonGucianStudentTakeCourse values (9,4,45);
+insert into NonGucianStudentTakeCourse values (10,1,90);
+insert into NonGucianStudentTakeCourse values (10,3,38);
+insert into NonGucianStudentTakeCourse values (10,2,80);
 --display NonGucianStudentTakeCourse table
 select * from NonGucianStudentTakeCourse;
 --NonGucianStudentPayForCourse insertion
